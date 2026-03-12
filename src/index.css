@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(120,120,200,.3);border-radius:3px}
+select option{background:#1a1a3a;color:#e8e8f0}
+
+@keyframes twinkle{0%,100%{opacity:.2}50%{opacity:.9}}
+.star{animation:twinkle var(--dur,3s) ease-in-out infinite;animation-delay:var(--delay,0s)}
+
+@keyframes dropIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.drop-in{animation:dropIn .4s ease-out}
+
+@keyframes celebrateIn{0%{opacity:0;transform:scale(.8)}60%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+.celebrate-in{animation:celebrateIn 1.2s ease-out}
+
+@keyframes pageFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.page-in{animation:pageFade .35s ease-out}
+
+@keyframes pulse7{0%{box-shadow:0 0 4px currentColor}50%{box-shadow:0 0 16px currentColor}100%{box-shadow:0 0 4px currentColor}}
+.map-dot{animation:pulse7 3s ease-in-out infinite}
+
+.glass{background:rgba(15,15,40,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(120,120,200,.15)}
+.tour-btn{transition:all .25s ease}.tour-btn:hover{transform:scale(1.12)}.tour-btn:active{transform:scale(.95)}
+
+input:focus,select:focus{outline:none;border-color:rgba(0,229,160,.6)!important;box-shadow:0 0 0 3px rgba(0,229,160,.1)}
