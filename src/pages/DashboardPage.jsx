@@ -11,6 +11,7 @@ import SettingsModal from '../components/SettingsModal';
 import JoinFlow from '../components/JoinFlow';
 import Portal from '../components/Portal';
 import { useApp } from '../context/AppContext';
+import WorldMap from '../components/WorldMap';
 
 export default function DashboardPage() {
   const { active } = useApp();
