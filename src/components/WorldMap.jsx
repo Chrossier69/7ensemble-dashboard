@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { MAP_POINTS, mapPointStats, TOUR_COLORS, DEMO_MODE } from '../data/businessData';
-
+import mapMondeTdb from '../assets/images/mapmonde-tdb.png';
 function toXY(lat, lng) {
   return { x: ((lng + 180) / 360) * 100, y: ((90 - lat) / 180) * 100 };
 }
@@ -166,37 +166,11 @@ export default function WorldMap() {
         style={{ aspectRatio: '2/1', background: 'linear-gradient(180deg, #0d1129 0%, #080c1a 100%)' }}>
 
         {/* Continent SVG */}
-        <svg viewBox="0 0 1000 500" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <linearGradient id="land" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(180,190,220,0.12)"/>
-              <stop offset="100%" stopColor="rgba(120,130,170,0.06)"/>
-            </linearGradient>
-          </defs>
-          {[83,167,250,333,417].map(y => (
-            <line key={`h${y}`} x1="0" y1={y} x2="1000" y2={y} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
-          ))}
-          {[200,400,500,600,800].map(x => (
-            <line key={`v${x}`} x1={x} y1="0" x2={x} y2="500" stroke="rgba(255,255,255,0.015)" strokeWidth="0.5"/>
-          ))}
-          <path d="M50,65 L75,50 L110,42 L150,38 L190,42 L225,55 L248,75 L255,95 L250,120 L238,145 L222,162 L208,172 L195,180 L182,182 L170,178 L162,172 L155,160 L148,148 L135,140 L120,135 L105,128 L92,115 L78,100 L65,85 L55,75Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M285,25 L310,20 L335,28 L340,48 L328,65 L305,68 L288,55 L282,40Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M155,185 L168,182 L178,190 L182,205 L175,218 L165,225 L158,215 L152,200Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M190,230 L215,222 L240,228 L260,242 L272,265 L278,295 L275,325 L268,355 L258,378 L245,392 L232,395 L222,388 L215,370 L208,345 L202,315 L198,285 L195,260 L190,245Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M435,55 L452,48 L470,45 L490,48 L508,55 L520,68 L528,85 L525,102 L518,112 L508,118 L495,120 L482,118 L470,112 L458,105 L448,95 L440,80 L436,68Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M418,62 L428,58 L432,68 L428,78 L420,75Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M445,138 L462,128 L482,125 L505,128 L525,135 L540,148 L548,168 L552,195 L550,225 L545,255 L538,282 L528,305 L515,322 L500,332 L485,335 L472,328 L460,312 L452,290 L448,265 L445,235 L443,205 L442,175 L443,155Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M562,285 L570,278 L575,292 L572,308 L565,312 L560,300Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M540,105 L565,98 L585,108 L580,125 L568,135 L548,132 L538,120Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M530,48 L570,38 L620,32 L680,28 L740,32 L790,42 L820,55 L835,72 L828,88 L810,95 L785,92 L750,85 L710,78 L670,72 L630,68 L590,65 L555,58Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M680,80 L720,78 L755,88 L775,102 L778,120 L770,135 L752,142 L732,138 L712,130 L695,118 L685,105 L678,92Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M638,128 L658,122 L672,135 L678,158 L672,182 L660,198 L648,195 L638,178 L632,158 L634,142Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M718,148 L742,145 L758,155 L762,172 L752,185 L738,182 L725,172 L718,160Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M805,82 L815,78 L822,88 L818,102 L810,105 L805,95Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M720,215 L745,210 L775,215 L790,222 L780,232 L755,235 L730,228Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M748,288 L785,278 L820,282 L845,295 L852,315 L845,340 L828,355 L805,362 L778,358 L758,345 L748,325 L745,305Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-          <path d="M878,355 L885,348 L890,362 L885,375 L878,370Z" fill="url(#land)" stroke="rgba(200,210,240,0.08)" strokeWidth="0.8"/>
-        </svg>
+        <img
+  src={mapMondeTbd}
+  alt="Carte du monde"
+  className="absolute inset-0 w-full h-full object-cover opacity-90 pointer-events-none"
+/>
 
         {/* §2+§3: Data points — triangle for Tri, star for Plé, with hover + focus */}
         {filtered.map(p => {
