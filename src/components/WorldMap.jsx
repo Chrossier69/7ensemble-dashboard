@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { MAP_POINTS, mapPointStats, TOUR_COLORS, DEMO_MODE } from '../data/businessData';
-import mapMondeTdb from '../assets/images/mapmonde-tdb.png';
 function toXY(lat, lng) {
   return { x: ((lng + 180) / 360) * 100, y: ((90 - lat) / 180) * 100 };
 }
@@ -167,7 +166,7 @@ export default function WorldMap() {
 
         {/* Continent SVG */}
         <img
-  src={mapMondeTbd}
+  src="/mapmonde-tdb.png"
   alt="Carte du monde"
   className="absolute inset-0 w-full h-full object-cover opacity-90 pointer-events-none"
 />
