@@ -166,7 +166,7 @@ export default function WorldMap() {
 
         {/* Continent SVG */}
         <img
-  src="/mapmonde-tdb.png"
+  src={`${import.meta.env.BASE_URL}mapmonde-tdb.png`}
   alt="Carte du monde"
   className="absolute inset-0 w-full h-full object-cover opacity-90 pointer-events-none"
 />
@@ -229,7 +229,6 @@ export default function WorldMap() {
           <span className="flex items-center gap-1"><span className="text-coral7">▲</span> Triangulum</span>
           <span className="flex items-center gap-1"><span className="text-gold7">★</span> Pléiade</span>
           <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-em7 inline-block"></span> Complet</span>
-          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-gold7 inline-block"></span> Manque</span>
                 </div>
       </div>
 
