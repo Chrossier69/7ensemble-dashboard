@@ -3,7 +3,6 @@ import StarField from '../components/StarField';
 import TopBar from '../components/TopBar';
 import StatCards from '../components/StatCards';
 import ConstellationVisual from '../components/ConstellationVisual';
-import mapMondeTdb from '../../assets/images/mapmonde-tdb.png';
 import PaymentCard from '../components/PaymentCard';
 import MesConstellations from '../components/MesConstellations';
 import SearchPlaces from '../components/SearchPlaces';
