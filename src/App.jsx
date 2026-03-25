@@ -16,7 +16,8 @@ function AppInner() {
   useEffect(() => {
     if (load()) setView('dashboard');
   }, []);
-
+if (window.location.pathname === '/payment-success') {
+    setView('payment-success');
   // React to auth changes
   useEffect(() => {
     if (hasAccess) setView('dashboard');

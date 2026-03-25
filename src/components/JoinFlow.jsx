@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { fmtEuro } from '../data/businessData';
+import { fmtEuro, DEMO_MODE } from '../data/businessData';
+import { backendApi } from "../data/backendApi";
 import Portal from './Portal';
 
 /**
@@ -16,18 +17,38 @@ export default function JoinFlow({ constellation, onDone, onCancel }) {
   const isTri = constellation.max === 3;
   const places = constellation.max - constellation.filled;
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setStep('paying');
-    // §4: Simulated payment — replace with Stripe checkout
-    setTimeout(() => {
-      // Add user to constellation + create in dashboard
-      joinConstellation(constellation);
-      setStep('done');
-      // §4: Emails to send (backend hook)
-      console.log('[EMAIL] Confirmation → ', user?.email);
-      console.log('[EMAIL] Notification → ', constellation.owner, '(place prise)');
-      setTimeout(onDone, 1500);
-    }, 2000);
+
+    // Mode démo : comportement simulé existant
+    if (DEMO_MODE) {
+      setTimeout(() => {
+        joinConstellation(constellation);
+        setStep('done');
+        setTimeout(onDone, 1500);
+      }, 2000);
+      return;
+    }
+
+    // Mode réel : Stripe Checkout
+    try {
+      const data = await backendApi.createCheckout({
+        type: 'join',
+        amount: 21,
+        constellationId: constellation.id,
+        tour: 1,
+      });
+      localStorage.setItem('7e_pending_payment', JSON.stringify({
+        constellationId: constellation.id,
+        transactionId: data.transactionId,
+        type: 'join',
+        owner: constellation.owner,
+      }));
+      window.location.href = data.url;
+    } catch (err) {
+      console.error('Join payment error:', err);
+      setStep('confirm');
+    }
   };
 
   return (

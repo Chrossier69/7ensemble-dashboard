@@ -41,35 +41,41 @@ export function AppProvider({ children }) {
   }, []);
 
   const load = useCallback(() => {
-    try {
-      const raw = localStorage.getItem('7e');
-      if (!raw) return false;
-      const d = JSON.parse(raw);
-      if (!d.user) return false;
-      setUser(d.user);
-      // Migrate old field names
-      const migrated = (d.constellations || []).map(c => ({
-        ...c,
-        pseudo: c.pseudo || '',
-        alcyonePseudo: c.alcyonePseudo || '',
-        contributionsRecues: c.contributionsRecues ?? c.recuTourCourant ?? 0,
-        cumulVersees: c.cumulVersees ?? 21,
-        soldeDisponible: c.soldeDisponible ?? 0,
-        paiementEffectue: c.paiementEffectue ?? false,
-        tourComplet: c.tourComplet ?? false,
-        constellationTerminee: c.constellationTerminee ?? false,
-        paidMembers: c.paidMembers ?? [],
-        maxMembers: c.maxMembers ?? maxMembers(c.type),
-        initialPaid: c.initialPaid ?? false,
-      }));
-      setConstellations(migrated);
-      setActiveId(d.activeId || migrated[0]?.id || null);
-      setAuthed(true);
-      const tRaw = localStorage.getItem('7e_testimonials');
-      if (tRaw) setTestimonials(JSON.parse(tRaw));
-      return true;
-    } catch { return false; }
-  }, []);
+  try {
+    const raw = localStorage.getItem('7e');
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (!d.user) return false;
+
+    // Ici, on met les setUser et setAuthed, mais après tout le reste
+    setAuthed(true);
+    setUser(d.user);
+
+    // Migration des constellations
+    const migrated = (d.constellations || []).map(c => ({
+      ...c,
+      pseudo: c.pseudo || '',
+      alcyonePseudo: c.alcyonePseudo || '',
+      contributionsRecues: c.contributionsRecues ?? c.recuTourCourant ?? 0,
+      cumulVersees: c.cumulVersees ?? 21,
+      soldeDisponible: c.soldeDisponible ?? 0,
+      paiementEffectue: c.paiementEffectue ?? false,
+      tourComplet: c.tourComplet ?? false,
+      constellationTerminee: c.constellationTerminee ?? false,
+      paidMembers: c.paidMembers ?? [],
+      maxMembers: c.maxMembers ?? maxMembers(c.type),
+      initialPaid: c.initialPaid ?? false,
+    }));
+    setConstellations(migrated);
+    setActiveId(d.activeId || migrated[0]?.id || null);
+
+    const tRaw = localStorage.getItem('7e_testimonials');
+    if (tRaw) setTestimonials(JSON.parse(tRaw));
+    return true;
+  } catch {
+    return false;
+  }
+}, []);
 
   // §3: Check pseudo uniqueness (case-insensitive, trimmed)
   const isPseudoTaken = useCallback((pseudo) => {

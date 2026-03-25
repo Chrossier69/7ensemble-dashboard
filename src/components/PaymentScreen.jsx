@@ -1,19 +1,51 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { backendApi } from "../data/backendApi";
+import { DEMO_MODE } from '../data/businessData';
 
 export default function PaymentScreen({ constId, onDone }) {
   const { payInitial, user } = useApp();
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
 
-  const handlePay = () => {
+  const handlePay = async () => {
     setProcessing(true);
-    setTimeout(() => {
-      payInitial(constId);
+    setError('');
+
+    // Mode démo : paiement simulé (comportement existant préservé)
+    if (DEMO_MODE) {
+      setTimeout(() => {
+        payInitial(constId);
+        setProcessing(false);
+        setDone(true);
+        setTimeout(onDone, 1200);
+      }, 1800);
+      return;
+    }
+
+    // Mode réel : Stripe Checkout
+    try {
+      const data = await backendApi.createCheckout({
+        type: 'initial',
+        amount: 21,
+        constellationId: constId,
+        tour: 1,
+      });
+
+      // Sauvegarder le constId pour le retour
+      localStorage.setItem('7e_pending_payment', JSON.stringify({
+        constId,
+        transactionId: data.transactionId,
+        type: 'initial',
+      }));
+
+      // Rediriger vers Stripe Checkout
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err.message);
       setProcessing(false);
-      setDone(true);
-      setTimeout(onDone, 1200);
-    }, 1800);
+    }
   };
 
   if (done) {
@@ -44,6 +76,11 @@ export default function PaymentScreen({ constId, onDone }) {
             <div className="text-3xl font-extrabold text-em7 mb-1">21 €</div>
             <div className="text-xs text-cosmos-100">Contribution initiale – Tour 1</div>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>
+          )}
+
           {user?.paiement && (
             <div className="text-left mb-6 rounded-xl bg-white/[.04] border border-white/[.08] p-4">
               <div className="text-xs font-semibold text-cosmos-100 mb-1">Mode de paiement</div>
@@ -58,11 +95,12 @@ export default function PaymentScreen({ constId, onDone }) {
             {processing
               ? <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                  Traitement en cours...
+                  Redirection vers le paiement...
                 </span>
               : 'Payer 21 € maintenant'}
           </button>
-          <p className="mt-3 text-xs text-cosmos-100/60">Paiement simulé pour la démo</p>
+          {DEMO_MODE && <p className="mt-3 text-xs text-cosmos-100/60">Mode démo — paiement simulé</p>}
+          {!DEMO_MODE && <p className="mt-3 text-xs text-cosmos-100/60">Paiement sécurisé par Stripe</p>}
         </div>
       </div>
     </div>

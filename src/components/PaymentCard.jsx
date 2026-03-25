@@ -23,6 +23,8 @@ export default function PaymentCard() {
   const handlePay = () => {
     if (!canPay) return;
     setPaying(true);
+    // Les contributions de tour se gèrent en logique interne
+    // Seul le paiement initial 21€ passe par Stripe
     setTimeout(() => { payCurrentTour(active.id); setPaying(false); }, 1200);
   };
 

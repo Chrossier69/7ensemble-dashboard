@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { COUNTRIES, PAY_METHODS, TRI_GAIN, PLE_GAIN } from '../data/businessData';
+import { COUNTRIES, PAY_METHODS, TRI_GAIN, PLE_GAIN, DEMO_MODE } from '../data/businessData';
 import { useApp } from '../context/AppContext';
+import { backendApi, setToken } from '../data/backendApi';
 
 // ═══════════════════════════════════════════════════════════
 //  FIX #1 — Input components OUTSIDE the parent component
@@ -104,26 +105,72 @@ export default function RegistrationModal({ onClose, onNeedPayment }) {
     return e;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const e = validate();
-    // §3: Check pseudo uniqueness before submit
-    if (isPseudoTaken(form.pseudo)) {
-      e.pseudo = 'Ce pseudo est déjà utilisé. Choisissez-en un autre.';
-    }
     if (Object.keys(e).length) {
       setErrors(e);
       return;
     }
     setBusy(true);
-    setTimeout(() => {
-      const result = register(form);
-      setBusy(false);
-      if (result && result.error === 'pseudo_taken') {
+    setErrors({});
+
+    // Mode démo : flux existant (localStorage uniquement)
+    if (DEMO_MODE) {
+      if (isPseudoTaken(form.pseudo)) {
         setErrors({ pseudo: 'Ce pseudo est déjà utilisé.' });
+        setBusy(false);
         return;
       }
-      onNeedPayment(result.id);
-    }, 600);
+      setTimeout(() => {
+        const result = register(form);
+        setBusy(false);
+        if (result && result.error === 'pseudo_taken') {
+          setErrors({ pseudo: 'Ce pseudo est déjà utilisé.' });
+          return;
+        }
+        onNeedPayment(result.id);
+      }, 600);
+      return;
+    }
+
+    // Mode réel : appel backend → JWT → puis paiement Stripe
+    try {
+      const data = await backendApi.register({
+        pseudo: form.pseudo.trim(),
+        email: form.email.trim(),
+        password: form.password,
+        prenom: form.prenom.trim(),
+        nom: form.nom.trim(),
+        pays: form.pays,
+        paymentMethod: ({ 'Carte bancaire (Stripe)': 'stripe', 'PayPal': 'paypal', 'TWINT': 'twint' })[form.paiement] || 'stripe',
+        alcyone: form.alcyone.trim(),
+        constellationType: form.option, // 'triangulum' ou 'pleiade'
+      });
+
+      // Stocker le JWT pour les appels suivants (paiement Stripe)
+      setToken(data.token);
+
+      // Aussi créer la session locale pour le dashboard
+      const localResult = register(form);
+
+      setBusy(false);
+
+      // Utiliser l'ID constellation du backend pour Stripe
+      const constId = data.constellation?.id || 'c1';
+      onNeedPayment(constId);
+    } catch (err) {
+      setBusy(false);
+      // Mapper les erreurs du backend vers les champs
+      if (err.message.includes('pseudo')) {
+        setErrors({ pseudo: err.message });
+      } else if (err.message.includes('email')) {
+        setErrors({ email: err.message });
+      } else if (err.message.includes('Alcyone')) {
+        setErrors({ alcyone: err.message });
+      } else {
+        setErrors({ general: err.message });
+      }
+    }
   };
 
   return (
@@ -211,6 +258,12 @@ export default function RegistrationModal({ onClose, onNeedPayment }) {
         </div>
 
         {/* THE real submit button */}
+        {errors.general && (
+          <div className="mb-4 p-3 rounded-xl bg-coral7/10 border border-coral7/20 text-sm text-coral7 text-center">
+            {errors.general}
+          </div>
+        )}
+
         <button onClick={handleSubmit} disabled={busy}
           className={`w-full py-4 rounded-xl text-white font-bold text-base transition-all font-display
             ${busy ? 'bg-purp7/40 cursor-wait' : 'bg-gradient-to-r from-purp7 via-cyan7 to-em7 hover:shadow-lg hover:shadow-purp7/30 hover:-translate-y-0.5 cursor-pointer'}`}>

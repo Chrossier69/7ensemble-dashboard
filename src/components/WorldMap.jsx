@@ -165,7 +165,7 @@ export default function WorldMap() {
         style={{ aspectRatio: '2/1', background: 'linear-gradient(180deg, #0d1129 0%, #080c1a 100%)' }}>
 
         {/* Continent SVG */}
-        <img
+         <img
   src={`${import.meta.env.BASE_URL}mapmonde-tdb.png`}
   alt="Carte du monde"
   className="absolute inset-0 w-full h-full object-cover opacity-90 pointer-events-none"
