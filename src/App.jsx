@@ -12,16 +12,21 @@ function AppInner() {
   const [showRegister, setShowRegister] = useState(false);
   const [pendingPaymentId, setPendingPaymentId] = useState(null);
 
-  // Restore session
-  useEffect(() => {
-    if (load()) setView('dashboard');
-  }, []);
-if (window.location.pathname === '/payment-success') {
+ // Restore session
+useEffect(() => {
+  if (load()) setView('dashboard');
+}, []);
+
+useEffect(() => {
+  if (window.location.pathname === '/payment-success') {
     setView('payment-success');
-  // React to auth changes
-  useEffect(() => {
-    if (hasAccess) setView('dashboard');
-  }, [hasAccess]);
+  }
+}, []);
+
+// React to auth changes
+useEffect(() => {
+  if (hasAccess) setView('dashboard');
+}, [hasAccess]);
 
   // §1.1: "Rejoindre la révolution" → DIRECTLY to registration form
   const handleJoin = () => setShowRegister(true);
