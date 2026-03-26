@@ -12,7 +12,7 @@ function AppInner() {
   const [showRegister, setShowRegister] = useState(false);
   const [pendingPaymentId, setPendingPaymentId] = useState(null);
 
- // Restore session
+// Restore session
 useEffect(() => {
   if (load()) setView('dashboard');
 }, []);
@@ -25,7 +25,9 @@ useEffect(() => {
 
 // React to auth changes
 useEffect(() => {
-  if (hasAccess) setView('dashboard');
+  if (hasAccess && window.location.pathname !== '/payment-success') {
+    setView('dashboard');
+  }
 }, [hasAccess]);
 
   // §1.1: "Rejoindre la révolution" → DIRECTLY to registration form
