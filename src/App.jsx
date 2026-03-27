@@ -18,14 +18,18 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
-  if (window.location.pathname === '/payment-success') {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('payment-success') === '1') {
     setView('payment-success');
   }
 }, []);
 
 // React to auth changes
 useEffect(() => {
-  if (hasAccess && window.location.pathname !== '/payment-success') {
+  const params = new URLSearchParams(window.location.search);
+  const isPaymentSuccess = params.get('payment-success') === '1';
+
+  if (hasAccess && !isPaymentSuccess) {
     setView('dashboard');
   }
 }, [hasAccess]);
