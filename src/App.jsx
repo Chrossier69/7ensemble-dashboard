@@ -64,7 +64,7 @@ useEffect(() => {
   };
 
   // Dashboard
-  if (view === 'dashboard' && hasAccess) return <DashboardPage />;
+  if (view === 'dashboard') return <DashboardPage />;
 
   // Landing + modals
   return (
