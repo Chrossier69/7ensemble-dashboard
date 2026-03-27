@@ -11,17 +11,15 @@ function AppInner() {
   const [showRegister, setShowRegister] = useState(false);
   const [pendingPaymentId, setPendingPaymentId] = useState(null);
 
-  const params = new URLSearchParams(window.location.search);
-  const isPaymentSuccess = params.get('payment-success') === '1';
-
   // Restore session
   useEffect(() => {
     if (load()) setView('dashboard');
   }, [load]);
 
-  // Stripe return -> mark initial payment as done
+  // Stripe return -> activate access + open dashboard
   useEffect(() => {
-    if (isPaymentSuccess) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment-success') === '1') {
       const saved = JSON.parse(localStorage.getItem('7e') || '{}');
       const constId = activeId || saved.activeId || saved.constellations?.[0]?.id || 'c1';
 
@@ -30,14 +28,17 @@ function AppInner() {
       setShowRegister(false);
       setView('dashboard');
     }
-  }, [isPaymentSuccess, activeId, payInitial]);
+  }, [activeId, payInitial]);
 
   // React to auth changes
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isPaymentSuccess = params.get('payment-success') === '1';
+
     if (hasAccess && !isPaymentSuccess) {
       setView('dashboard');
     }
-  }, [hasAccess, isPaymentSuccess]);
+  }, [hasAccess]);
 
   const handleJoin = () => setShowRegister(true);
 
@@ -71,10 +72,7 @@ function AppInner() {
     }, 50);
   };
 
-  // IMPORTANT: direct dashboard render on Stripe return
-  if (isPaymentSuccess || view === 'dashboard') {
-    return <DashboardPage />;
-  }
+  if (view === 'dashboard') return <DashboardPage />;
 
   return (
     <>
