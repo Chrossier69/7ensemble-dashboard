@@ -20,7 +20,7 @@ useEffect(() => {
 useEffect(() => {
   const params = new URLSearchParams(window.location.search);
   if (params.get('payment-success') === '1') {
-    setView('payment-success');
+    setView('dashboard');
   }
 }, []);
 
