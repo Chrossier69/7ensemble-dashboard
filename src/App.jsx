@@ -4,84 +4,72 @@ import LandingPage from './pages/LandingPage';
 import DashboardPage from './pages/DashboardPage';
 import RegistrationModal from './components/RegistrationModal';
 import PaymentScreen from './components/PaymentScreen';
+import PaymentSuccess from './components/PaymentSuccess';
 
 function AppInner() {
-  const { hasAccess, load, register, payInitial, testimonials, activeId } = useApp();
+  const { hasAccess, load, payInitial, testimonials } = useApp();
   const [view, setView] = useState('landing');
   const [showRegister, setShowRegister] = useState(false);
   const [pendingPaymentId, setPendingPaymentId] = useState(null);
 
-  // Restore session
   useEffect(() => {
-    if (load()) setView('dashboard');
-  }, [load]);
-
-  // Stripe return -> activate access + open dashboard
-  useEffect(() => {
+    // 1. Check if returning from Stripe payment (query param)
     const params = new URLSearchParams(window.location.search);
-    if (params.get('payment-success') === '1') {
-      const saved = JSON.parse(localStorage.getItem('7e') || '{}');
-      const constId = activeId || saved.activeId || saved.constellations?.[0]?.id || 'c1';
+    const isPaymentReturn = params.get('payment-success') === '1';
+    const txId = params.get('tx');
 
-      payInitial(constId);
-      setPendingPaymentId(null);
-      setShowRegister(false);
+    // 2. Load existing session from localStorage
+    const hasSession = load();
+
+    if (isPaymentReturn && txId) {
+      // Returning from Stripe — show payment verification screen
+      setView('payment-success');
+      return;
+    }
+
+    if (hasSession) {
       setView('dashboard');
     }
-  }, [activeId, payInitial]);
+  }, []);
 
   // React to auth changes
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const isPaymentSuccess = params.get('payment-success') === '1';
-
-    if (hasAccess && !isPaymentSuccess) {
+    if (hasAccess && view !== 'payment-success') {
       setView('dashboard');
     }
   }, [hasAccess]);
 
+  // "Rejoindre la révolution" → registration form
   const handleJoin = () => setShowRegister(true);
 
+  // After registration → payment screen (ALWAYS, no bypass)
   const handleNeedPayment = (constId) => {
     setShowRegister(false);
     setPendingPaymentId(constId);
   };
 
+  // After Stripe payment confirmed → dashboard
   const handlePaymentDone = () => {
     setPendingPaymentId(null);
     setView('dashboard');
+    // Clean the URL (remove query params)
+    window.history.replaceState(null, '', '/');
   };
 
-  const handleDemo = () => {
-    register({
-      alcyone: 'MERCI_L_UNIVERS',
-      prenom: 'Marie',
-      nom: 'Dupont',
-      email: 'marie@example.com',
-      pseudo: 'Marie_CH',
-      password: 'demo123',
-      pays: 'Suisse',
-      paiement: 'Carte bancaire (Stripe)',
-      accept: true,
-      option: 'triangulum',
-    });
+  // Stripe return — payment verification
+  if (view === 'payment-success') {
+    return <PaymentSuccess onDone={handlePaymentDone} />;
+  }
 
-    setTimeout(() => {
-      payInitial('c1');
-      setView('dashboard');
-    }, 50);
-  };
+  // Dashboard — ONLY if hasAccess (requires initialPaid = true)
+  if (view === 'dashboard' && hasAccess) return <DashboardPage />;
 
-  if (view === 'dashboard') return <DashboardPage />;
-
+  // Landing + modals
   return (
     <>
-      <LandingPage onJoin={handleJoin} onDemo={handleDemo} testimonials={testimonials} />
+      <LandingPage onJoin={handleJoin} testimonials={testimonials} />
       {showRegister && (
-        <RegistrationModal
-          onClose={() => setShowRegister(false)}
-          onNeedPayment={handleNeedPayment}
-        />
+        <RegistrationModal onClose={() => setShowRegister(false)} onNeedPayment={handleNeedPayment} />
       )}
       {pendingPaymentId && (
         <PaymentScreen constId={pendingPaymentId} onDone={handlePaymentDone} />
@@ -91,9 +79,5 @@ function AppInner() {
 }
 
 export default function App() {
-  return (
-    <AppProvider>
-      <AppInner />
-    </AppProvider>
-  );
+  return <AppProvider><AppInner /></AppProvider>;
 }

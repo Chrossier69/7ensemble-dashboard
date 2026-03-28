@@ -14,6 +14,10 @@ export function setToken(token) {
   localStorage.setItem('7e_token', token);
 }
 
+export function clearToken() {
+  localStorage.removeItem('7e_token');
+}
+
 async function request(path, options = {}) {
   const token = getToken();
   const headers = { 'Content-Type': 'application/json', ...options.headers };
@@ -26,11 +30,8 @@ async function request(path, options = {}) {
 }
 
 export const backendApi = {
-  // Auth — pour stocker le token après inscription/login
   register: (form) => request('/auth/register', { method: 'POST', body: JSON.stringify(form) }),
   login: (email, password) => request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-
-  // Payments — Stripe Checkout
   createCheckout: (data) => request('/payments/create-checkout', { method: 'POST', body: JSON.stringify(data) }),
   paymentStatus: (txId) => request(`/payments/status/${txId}`),
 };

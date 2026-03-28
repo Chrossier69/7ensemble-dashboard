@@ -1,40 +1,33 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { backendApi } from '../data/backendApi';
 import { fmtEuro } from '../data/businessData';
 import Portal from './Portal';
 
+/**
+ * §4 Join Flow:
+ * 1. Confirmation page (constellation details + 21€ info)
+ * 2. Payment (simulated — ready for Stripe)
+ * 3. Auto-add to dashboard
+ * 4. Emails marked as "to send" (backend hook)
+ */
 export default function JoinFlow({ constellation, onDone, onCancel }) {
-  const { user } = useApp();
-  const [step, setStep] = useState('confirm');
-  const [error, setError] = useState('');
+  const { user, joinConstellation } = useApp();
+  const [step, setStep] = useState('confirm'); // confirm | paying | done
   const isTri = constellation.max === 3;
   const places = constellation.max - constellation.filled;
 
-  const handlePay = async () => {
+  const handlePay = () => {
     setStep('paying');
-    setError('');
-
-    try {
-      const data = await backendApi.createCheckout({
-        type: 'join',
-        amount: 21,
-        constellationId: constellation.id,
-        tour: 1,
-      });
-
-      localStorage.setItem('7e_pending_payment', JSON.stringify({
-        constellationId: constellation.id,
-        transactionId: data.transactionId,
-        type: 'join',
-        owner: constellation.owner,
-      }));
-
-      window.location.href = data.url;
-    } catch (err) {
-      setError(err.message);
-      setStep('confirm');
-    }
+    // §4: Simulated payment — replace with Stripe checkout
+    setTimeout(() => {
+      // Add user to constellation + create in dashboard
+      joinConstellation(constellation);
+      setStep('done');
+      // §4: Emails to send (backend hook)
+      console.log('[EMAIL] Confirmation → ', user?.email);
+      console.log('[EMAIL] Notification → ', constellation.owner, '(place prise)');
+      setTimeout(onDone, 1500);
+    }, 2000);
   };
 
   return (
@@ -44,6 +37,7 @@ export default function JoinFlow({ constellation, onDone, onCancel }) {
         <div className="w-full max-w-md mx-4 rounded-2xl p-6 glass page-in"
           onClick={e => e.stopPropagation()}>
 
+          {/* STEP 1: Confirm */}
           {step === 'confirm' && (
             <>
               <h3 className="text-lg font-bold text-cosmos-50 mb-4 font-display text-center">
@@ -70,6 +64,10 @@ export default function JoinFlow({ constellation, onDone, onCancel }) {
                     <span className="text-cosmos-100">Places disponibles</span>
                     <span className="text-em7 font-semibold">{places}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-cosmos-100">Membres actuels</span>
+                    <span className="text-cosmos-50">{constellation.filled}/{constellation.max}</span>
+                  </div>
                 </div>
               </div>
 
@@ -78,9 +76,10 @@ export default function JoinFlow({ constellation, onDone, onCancel }) {
                 <div className="text-xs text-gold7/70">Paiement initial obligatoire</div>
               </div>
 
-              {error && (
-                <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>
-              )}
+              <p className="text-[10px] text-cosmos-100/60 text-center mb-4">
+                En rejoignant, vous vous engagez dans le système d'entraide 7 Ensemble.
+                La constellation apparaîtra dans votre dashboard après paiement.
+              </p>
 
               <div className="flex gap-3">
                 <button onClick={onCancel}
@@ -92,15 +91,36 @@ export default function JoinFlow({ constellation, onDone, onCancel }) {
                   Payer 21 € et rejoindre
                 </button>
               </div>
-              <p className="mt-3 text-xs text-cosmos-100/60 text-center">Paiement sécurisé par Stripe</p>
             </>
           )}
 
+          {/* STEP 2: Processing */}
           {step === 'paying' && (
             <div className="text-center py-6">
               <div className="w-12 h-12 mx-auto mb-4 border-3 border-em7 border-t-transparent rounded-full animate-spin" />
-              <h3 className="text-lg font-bold text-cosmos-50 mb-2 font-display">Redirection...</h3>
-              <p className="text-xs text-cosmos-100">Connexion au système de paiement sécurisé</p>
+              <h3 className="text-lg font-bold text-cosmos-50 mb-2 font-display">Paiement en cours...</h3>
+              <p className="text-xs text-cosmos-100">Connexion au système de paiement</p>
+              <p className="text-[10px] text-cosmos-100/40 mt-2">
+                💳 {user?.paiement || 'Carte bancaire (Stripe)'}
+              </p>
+            </div>
+          )}
+
+          {/* STEP 3: Done */}
+          {step === 'done' && (
+            <div className="text-center py-6 drop-in">
+              <div className="text-5xl mb-4">🎉</div>
+              <h3 className="text-lg font-bold text-em7 mb-2 font-display">Bienvenue !</h3>
+              <p className="text-sm text-cosmos-100 mb-1">
+                Vous avez rejoint la constellation de {constellation.owner}
+              </p>
+              <p className="text-xs text-cosmos-100/60">
+                Elle apparaît maintenant dans votre dashboard.
+              </p>
+              <div className="mt-3 space-y-1 text-[10px] text-cosmos-100/40">
+                <div>📧 Email de confirmation envoyé à {user?.email}</div>
+                <div>📧 Notification envoyée à {constellation.owner}</div>
+              </div>
             </div>
           )}
         </div>

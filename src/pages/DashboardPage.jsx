@@ -3,31 +3,37 @@ import StarField from '../components/StarField';
 import TopBar from '../components/TopBar';
 import StatCards from '../components/StatCards';
 import ConstellationVisual from '../components/ConstellationVisual';
+import WorldMap from '../components/WorldMap';
 import PaymentCard from '../components/PaymentCard';
 import MesConstellations from '../components/MesConstellations';
 import SearchPlaces from '../components/SearchPlaces';
 import TestimonialModal from '../components/TestimonialModal';
 import SettingsModal from '../components/SettingsModal';
+import PaymentScreen from '../components/PaymentScreen';
 import JoinFlow from '../components/JoinFlow';
 import Portal from '../components/Portal';
 import { useApp } from '../context/AppContext';
-import WorldMap from '../components/WorldMap';
 
 export default function DashboardPage() {
   const { active } = useApp();
   const [showTestimonial, setShowTestimonial] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [joiningConstellation, setJoiningConstellation] = useState(null);
+  const [newConstPaymentId, setNewConstPaymentId] = useState(null);
   const isTri = active?.type === 'triangulum';
 
   useEffect(() => {
     const onTest = () => setShowTestimonial(true);
     const onSet = () => setShowSettings(true);
+    // Listen for new constellation needing payment
+    const onNewConstPayment = (e) => setNewConstPaymentId(e.detail?.constId);
     window.addEventListener('open-testimonial', onTest);
     window.addEventListener('open-settings', onSet);
+    window.addEventListener('new-constellation-payment', onNewConstPayment);
     return () => {
       window.removeEventListener('open-testimonial', onTest);
       window.removeEventListener('open-settings', onSet);
+      window.removeEventListener('new-constellation-payment', onNewConstPayment);
     };
   }, []);
 
@@ -47,7 +53,6 @@ export default function DashboardPage() {
               </div>
               <ConstellationVisual />
             </div>
-            {/* §1A: World Map — informational only */}
             <div className="rounded-2xl p-5 glass">
               <WorldMap />
             </div>
@@ -56,27 +61,30 @@ export default function DashboardPage() {
           <div className="space-y-5">
             <PaymentCard />
             <MesConstellations />
-            {/* §1B: Search — action (Rejoindre) */}
-            <SearchPlaces onJoin={(constellation) => setJoiningConstellation(constellation)} />
+            <SearchPlaces onJoin={(c) => setJoiningConstellation(c)} />
           </div>
         </div>
       </div>
 
       {/* Modals */}
       {showTestimonial && (
-        <Portal>
-          <TestimonialModal onClose={() => setShowTestimonial(false)} />
-        </Portal>
+        <Portal><TestimonialModal onClose={() => setShowTestimonial(false)} /></Portal>
       )}
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} />
       )}
-      {/* §4: Join flow modal */}
       {joiningConstellation && (
         <JoinFlow
           constellation={joiningConstellation}
           onDone={() => setJoiningConstellation(null)}
           onCancel={() => setJoiningConstellation(null)}
+        />
+      )}
+      {/* Payment for new constellation created from dashboard */}
+      {newConstPaymentId && (
+        <PaymentScreen
+          constId={newConstPaymentId}
+          onDone={() => setNewConstPaymentId(null)}
         />
       )}
     </div>
