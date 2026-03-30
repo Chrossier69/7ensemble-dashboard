@@ -104,36 +104,53 @@ export default function PaymentSuccess({ onDone }) {
   }
 
   // Apply the payment to local state (AppContext) so dashboard becomes accessible
-  function applyLocalPayment(pending) {
-    const type = pending?.type;
-    const constId = pending?.constId;
+function applyLocalPayment(pending) {
+  const type = pending?.type;
+  const constId = pending?.constId || pending?.constellationId;
 
-    if (type === 'initial' && constId) {
-      payInitial(constId);
-    } else if (type === 'contribution' && constId) {
-      payCurrentTour(constId);
-    } else if (type === 'join') {
-      joinConstellation({
-        id: pending?.constellationId || 'joined-' + Date.now(),
-        owner: pending?.owner || '?',
-        max: 3,
-      });
-    } else {
-      // Fallback: try to find any constellation and mark as paid
-      try {
-        const raw7e = localStorage.getItem('7e');
-        if (raw7e) {
-          const d = JSON.parse(raw7e);
-          const unpaid = (d.constellations || []).find(c => !c.initialPaid);
-          if (unpaid) {
-            payInitial(unpaid.id);
-          }
-        }
-      } catch (e) {
-        console.error('Fallback payInitial error:', e);
-      }
-    }
+  if (type === 'initial' && constId) {
+    payInitial(constId);
+    return;
   }
+
+  if (type === 'contribution' && constId) {
+    payCurrentTour(constId);
+    return;
+  }
+
+  if (type === 'join') {
+    joinConstellation({
+      id: pending?.constellationId || 'joined-' + Date.now(),
+      owner: pending?.owner || '?',
+      max: 3,
+      pays: pending?.pays || '',
+    });
+    return;
+  }
+
+  // Fallback plus robuste
+  try {
+    const raw7e = localStorage.getItem('7e');
+    if (!raw7e) return;
+
+    const d = JSON.parse(raw7e);
+    const list = d.constellations || [];
+
+    // priorité : première constellation non payée
+    const unpaid = list.find(c => !c.initialPaid);
+    if (unpaid) {
+      payInitial(unpaid.id);
+      return;
+    }
+
+    // sinon, fallback sur l’active
+    if (d.activeId) {
+      payInitial(d.activeId);
+    }
+  } catch (e) {
+    console.error('Fallback payInitial error:', e);
+  }
+}
 
   return (
     <div className="min-h-screen flex items-center justify-center"

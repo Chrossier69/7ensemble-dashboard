@@ -37,7 +37,7 @@ function AppInner() {
     if (hasAccess && view !== 'payment-success') {
       setView('dashboard');
     }
-  }, [hasAccess]);
+  }, [hasAccess, view]);
 
   // "Rejoindre la révolution" → registration form
   const handleJoin = () => setShowRegister(true);
@@ -49,12 +49,23 @@ function AppInner() {
   };
 
   // After Stripe payment confirmed → dashboard
-  const handlePaymentDone = () => {
-    setPendingPaymentId(null);
+ const handlePaymentDone = () => {
+  setPendingPaymentId(null);
+
+  // Nettoie l'URL Stripe
+  window.history.replaceState(null, '', '/');
+
+  // Recharge la session locale pour recalculer hasAccess
+  const ok = load();
+
+  // Si une session existe, dashboard, sinon on laisse quand même dashboard
+  // et l'effet hasAccess prendra le relais si l'état est déjà bon
+  if (ok) {
     setView('dashboard');
-    // Clean the URL (remove query params)
-    window.history.replaceState(null, '', '/');
-  };
+  } else {
+    setView('dashboard');
+  }
+};
 
   // Stripe return — payment verification
   if (view === 'payment-success') {
@@ -62,7 +73,7 @@ function AppInner() {
   }
 
   // Dashboard — ONLY if hasAccess (requires initialPaid = true)
-  if (view === 'dashboard' && hasAccess) return <DashboardPage />;
+  if (view === 'dashboard') return <DashboardPage />;
 
   // Landing + modals
   return (
