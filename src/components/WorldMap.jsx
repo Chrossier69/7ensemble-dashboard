@@ -271,8 +271,8 @@ export default function WorldMap() {
                 <span className="text-lg text-coral7/80 font-bold">{selectedCountry.manque2}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="flex items-center gap-2 text-sm"><span className="w-2.5 h-2.5 rounded-full bg-coral7 inline-block"></span> Manque 3+</span>
-                <span className="text-lg text-coral7 font-bold">{selectedCountry.manque3}</span>
+                <span className="flex items-center gap-2 text-sm"><span className="w-2.5 h-2.5 rounded-full bg-coral7 inline-block"></span> Manque 3</span>
+                
               </div>
             </div>
           </div>
