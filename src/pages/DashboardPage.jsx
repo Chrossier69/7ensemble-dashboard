@@ -9,7 +9,6 @@ import MesConstellations from '../components/MesConstellations';
 import SearchPlaces from '../components/SearchPlaces';
 import TestimonialModal from '../components/TestimonialModal';
 import SettingsModal from '../components/SettingsModal';
-import PaymentScreen from '../components/PaymentScreen';
 import JoinFlow from '../components/JoinFlow';
 import Portal from '../components/Portal';
 import { useApp } from '../context/AppContext';
@@ -19,21 +18,16 @@ export default function DashboardPage() {
   const [showTestimonial, setShowTestimonial] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [joiningConstellation, setJoiningConstellation] = useState(null);
-  const [newConstPaymentId, setNewConstPaymentId] = useState(null);
   const isTri = active?.type === 'triangulum';
 
   useEffect(() => {
     const onTest = () => setShowTestimonial(true);
     const onSet = () => setShowSettings(true);
-    // Listen for new constellation needing payment
-    const onNewConstPayment = (e) => setNewConstPaymentId(e.detail?.constId);
     window.addEventListener('open-testimonial', onTest);
     window.addEventListener('open-settings', onSet);
-    window.addEventListener('new-constellation-payment', onNewConstPayment);
     return () => {
       window.removeEventListener('open-testimonial', onTest);
       window.removeEventListener('open-settings', onSet);
-      window.removeEventListener('new-constellation-payment', onNewConstPayment);
     };
   }, []);
 
@@ -73,18 +67,12 @@ export default function DashboardPage() {
       {showSettings && (
         <SettingsModal onClose={() => setShowSettings(false)} />
       )}
+      {/* JoinFlow = "prendre une place" — goes through Stripe */}
       {joiningConstellation && (
         <JoinFlow
           constellation={joiningConstellation}
           onDone={() => setJoiningConstellation(null)}
           onCancel={() => setJoiningConstellation(null)}
-        />
-      )}
-      {/* Payment for new constellation created from dashboard */}
-      {newConstPaymentId && (
-        <PaymentScreen
-          constId={newConstPaymentId}
-          onDone={() => setNewConstPaymentId(null)}
         />
       )}
     </div>
